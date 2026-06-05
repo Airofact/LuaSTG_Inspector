@@ -1,0 +1,6 @@
+{
+    "name": "inspector",
+    "version": "2.0.0",
+    "description": "游戏对象调试工具：类名标签、HP、实例统计、属性浏览器",
+    "main": "__init__.lua"
+}
