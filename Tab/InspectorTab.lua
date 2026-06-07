@@ -103,13 +103,78 @@ local function layoutProperty(key, value)
     end
 end
 
-local function layoutGameObjectProperties(unit)
+local function layoutGameObjectUserdataPart(unit)
     if not imgui_exist then return end
 
     local ImGui = imgui.ImGui
     for _, prop in ipairs(GAMEOBJECT_PROPERTIES) do
         if unit[prop] ~= nil then
             layoutProperty(prop, unit[prop])
+        end
+    end
+end
+
+local function layoutClassTable(class)
+    if not imgui_exist then return end
+
+    local ImGui = imgui.ImGui
+    for k, v in pairs(class) do
+        if k == 1 then
+            ImGui.TextColored(imgui.ImVec4(0.5, 0.5, 1, 1), string.format("Registered Init Callback: %s", v))
+        elseif k == 2 then
+            ImGui.TextColored(imgui.ImVec4(1, 0.5, 0.5, 1), string.format("Registered Delete Callback: %s", v))
+        elseif k == 3 then
+            ImGui.TextColored(imgui.ImVec4(0.5, 1, 1, 1), string.format("Registered Frame Callback: %s", v))
+        elseif k == 4 then
+            ImGui.TextColored(imgui.ImVec4(1, 0.5, 1, 1), string.format("Registered Render Callback: %s", v))
+        elseif k == 5 then
+            ImGui.TextColored(imgui.ImVec4(1, 1, 0.5, 1), string.format("Registered Collision Callback: %s", v))
+        elseif k == 6 then
+            ImGui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), string.format("Registered Kill Callback: %s", v))
+        elseif k == "base" then
+            ImGui.TextColored(imgui.ImVec4(0.8, 0.8, 0.2, 1), string.format("Base Class: %s", tostring(v.__identifier or v)))
+        elseif k == "is_class" and v == false then
+            ImGui.TextColored(imgui.ImVec4(0.8, 0.2, 0.2, 1), "Warning: This table is not a valid class (is_class = false)")
+        elseif k == "__identifier" then
+            ImGui.TextColored(imgui.ImVec4(0.2, 0.8, 0.8, 1), string.format("Class Identifier: %s", tostring(v)))
+        elseif k == "__definition_type" then
+            ImGui.TextColored(imgui.ImVec4(0.8, 0.2, 0.2, 1), string.format("Definition Type: %s", tostring(v)))
+        elseif k == "init" or k == "del" or k == "frame" or k == "render" or k == "colli" or k == "kill" then
+            ImGui.TextColored(imgui.ImVec4(0.8, 0.2, 0.8, 1), string.format("Defined %s Callback: %s", tostring(k), tostring(v)))
+        else
+            layoutProperty(k, v)
+        end
+    end
+end
+
+local function layoutGameObject(unit)
+    if not imgui_exist then return end
+    local ImGui = imgui.ImGui
+
+    local props = {}
+    for k, v in pairs(unit) do
+        table.insert(props, { key = k, value = v })
+    end
+    table.sort(props, function(a, b) return tostring(a.key) < tostring(b.key) end)
+    for _, prop in ipairs(props) do
+        local k, v = prop.key, prop.value
+        if type(v) == "userdata" and k == 3 then
+            -- 特例：object[3] 是游戏对象的元表，包含类信息等，单独处理
+            if ImGui.TreeNode("GameObject: ".. tostring(v)) then
+                layoutGameObjectUserdataPart(unit)
+                ImGui.TreePop()
+            end
+        elseif k == 2 then
+            -- 特例：object[2] 是游戏对象的uuid
+            ImGui.TextColored(imgui.ImVec4(0.5, 1, 0.5, 1), string.format("   > UUID: %s", tostring(v)))
+        elseif type(v) == "table" and k == 1 then
+            -- 特例：object[1] 是游戏对象的类表
+            if ImGui.TreeNode("Class Table: ".. tostring(v)) then
+                layoutClassTable(v)
+                ImGui.TreePop()
+            end
+        else
+            layoutProperty(k, v)
         end
     end
 end
@@ -153,24 +218,7 @@ local function layout()
     ImGui.SeparatorText("Properties")
 
     if ImGui.BeginChild("PropertyList", imgui.ImVec2(0, 0), imgui.ImGuiChildFlags.Borders) then
-        local props = {}
-        for k, v in pairs(unit) do
-            table.insert(props, { key = k, value = v })
-        end
-        table.sort(props, function(a, b) return tostring(a.key) < tostring(b.key) end)
-
-        for _, prop in ipairs(props) do
-            local k, v = prop.key, prop.value
-            if type(v) == "userdata" and k == 3 then
-                -- 特例：userdata[3] 是游戏对象的元表，包含类信息等，单独处理
-                if ImGui.TreeNode("GameObject: ".. tostring(v)) then
-                    layoutGameObjectProperties(unit)
-                    ImGui.TreePop()
-                end
-            else
-                layoutProperty(k, v)
-            end
-        end
+        layoutGameObject(unit)
         ImGui.EndChild()
     end
 end
