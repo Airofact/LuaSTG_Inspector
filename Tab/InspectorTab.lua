@@ -13,7 +13,7 @@ local function is_expandable(key, value)
 end
 
 ---@param value any
-local function layoutProperty(key, value)
+local function layoutProperty(key, value, owner)
     if not imgui_exist then return end
 
     local ImGui = imgui.ImGui
@@ -77,7 +77,17 @@ local function layoutProperty(key, value)
     if not is_expandable(key, value) then
         ImGui.TextColored(imgui.ImVec4(0.7, 0.7, 0.7, 1), string.format("%s:", tostring(key)))
         ImGui.SameLine()
-        ImGui.TextColored(type_color, display_value)
+        if vtype == "number" and owner then
+            ImGui.PushItemWidth(140)
+            local changed, new_value = ImGui.InputFloat(
+                "##prop_" .. tostring(owner) .. "_" .. tostring(key), value)
+            ImGui.PopItemWidth()
+            if changed then
+                owner[key] = new_value
+            end
+        else
+            ImGui.TextColored(type_color, display_value)
+        end
     else
         if ImGui.TreeNode(string.format("%s: %s", tostring(key), display_value)) then
             if vtype == "thread" then
@@ -95,7 +105,7 @@ local function layoutProperty(key, value)
             else
                 -- 展开表格内容
                 for k, v in pairs(value) do
-                    layoutProperty(k, v)
+                    layoutProperty(k, v, value)
                 end
             end
             ImGui.TreePop()
@@ -109,7 +119,7 @@ local function layoutGameObjectUserdataPart(unit)
     local ImGui = imgui.ImGui
     for _, prop in ipairs(GAMEOBJECT_PROPERTIES) do
         if unit[prop] ~= nil then
-            layoutProperty(prop, unit[prop])
+            layoutProperty(prop, unit[prop], unit)
         end
     end
 end
@@ -142,7 +152,7 @@ local function layoutClassTable(class)
         elseif k == "init" or k == "del" or k == "frame" or k == "render" or k == "colli" or k == "kill" then
             ImGui.TextColored(imgui.ImVec4(0.8, 0.2, 0.8, 1), string.format("Defined %s Callback: %s", tostring(k), tostring(v)))
         else
-            layoutProperty(k, v)
+            layoutProperty(k, v, class)
         end
     end
 end
@@ -174,7 +184,7 @@ local function layoutGameObject(unit)
                 ImGui.TreePop()
             end
         else
-            layoutProperty(k, v)
+            layoutProperty(k, v, unit)
         end
     end
 end
