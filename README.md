@@ -2,6 +2,14 @@
 
 游戏对象调试工具集。通过可视化界面显示对象的类名、血量等元信息，支持选中追踪、实例统计。
 
+## 安装
+
+在plugins（或plugin，看你用哪个版本）目录下
+```shell
+git clone https://github.com/Airofact/LuaSTG_Inspector.git
+```
+即可
+
 ## 架构
 
 ```
