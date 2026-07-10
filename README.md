@@ -7,18 +7,20 @@
 ```
 Inspector（门面单例）
 ├── config       → InspectorConfiguration  持久配置
-├── object_meta_info → ObjectMetaInfoRenderer  类名标签渲染（DirectWrite）
-├── instance_info    → InstanceInfoRenderer    HP 渲染
-├── indicator        → IndicatorRenderer       十字标 / 包围盒
 ├── selected_units / selected_class / owned_indicators  运行时选中状态
-└── 协调：选中自动管理 indicator 生命周期
+└── 协调：通过 IndicatorRenderer 单例管理选中指示器生命周期
+
+Hook/Render（渲染协调）
+├── ObjectMetaInfoRenderer 单例  类名标签渲染（DirectWrite）
+├── InstanceInfoRenderer 单例    HP 渲染
+└── IndicatorRenderer 单例       十字标 / 包围盒
 ```
 
 ## 模块一览
 
 | 模块 | 类型 | 职责 |
 |---|---|---|
-| `Inspector` | 单例 | 门面，持有所有子模块 + 选中协调 |
+| `Inspector` | 单例 | 门面，管理配置与选中状态 |
 | `InspectorConfiguration` | 单例 | 持久配置，预留 load/save |
 | `ObjectMetaInfoRenderer` | 单例 | 类名标签渲染（DirectWrite 合批） |
 | `InstanceInfoRenderer` | 单例 | HP 及护盾文字渲染 |
