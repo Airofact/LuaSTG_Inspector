@@ -60,6 +60,13 @@ local function layout()
     v, pl.thickness = ImGui.SliderInt("Thickness##pl", pl.thickness, 1, 10)
 
     ImGui.Separator()
+    ImGui.Text("Arc")
+    local arc = ch.arc
+    v, arc.show = ImGui.Checkbox("Show Arc##arc", arc.show)
+    v, arc.thickness = ImGui.SliderInt("Thickness##arc", arc.thickness, 1, 32)
+    v, arc.segments = ImGui.SliderInt("Segments##arc", arc.segments, 1, 512)
+
+    ImGui.Separator()
     ImGui.Text("Cubic Bezier")
     local bz3 = ch.bezier3
     v, bz3.show = ImGui.Checkbox("Show Cubic Bezier##bezier3", bz3.show)

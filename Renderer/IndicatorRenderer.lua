@@ -266,6 +266,65 @@ function PolylineIndicatorRenderer:render(cfg)
 end
 
 ----------------------------------------
+-- Arc
+----------------------------------------
+local ArcHandle = extend_handle(Atomic.Handle)
+local ArcIndicatorRenderer = plus.Class(Atomic)
+
+function ArcHandle:set_arc(x, y, radius, start_angle, end_angle)
+    local indicator = self.renderer.indicators[self.id]
+    if indicator then
+        indicator.x, indicator.y = x, y
+        indicator.radius = radius
+        indicator.start_angle, indicator.end_angle = start_angle, end_angle
+    end
+    return self
+end
+
+function ArcIndicatorRenderer:init(IMG)
+    Atomic.init(self)
+    self.IMG = IMG
+end
+
+---@param start_angle number @Degrees; positive sweep is counterclockwise.
+---@param end_angle number @Use start_angle + 360 for a full circle.
+---@param color? lstg.Color
+---@return number id, table handle
+function ArcIndicatorRenderer:add(x, y, radius, start_angle, end_angle, color)
+    return Atomic.add(self, {
+        x = x, y = y,
+        radius = radius,
+        start_angle = start_angle, end_angle = end_angle,
+        color = color or Color(255, 255, 255, 255),
+    }, ArcHandle)
+end
+
+function ArcIndicatorRenderer:render(cfg)
+    if not cfg or not cfg.show or cfg.thickness <= 0 then return end
+    local segments = math.max(1, math.min(512, math.floor(cfg.segments or 64)))
+    for _, ind in pairs(self.indicators) do
+        local sweep = ind.end_angle - ind.start_angle
+        if ind.radius > 0 and sweep ~= 0 then
+            local inner = math.max(0, ind.radius - cfg.thickness / 2)
+            local outer = ind.radius + cfg.thickness / 2
+            SetImageState(self.IMG, "", ind.color)
+            local angle = math.rad(ind.start_angle)
+            local ca, sa = math.cos(angle), math.sin(angle)
+            for i = 1, segments do
+                angle = math.rad(ind.start_angle + sweep * i / segments)
+                local cb, sb = math.cos(angle), math.sin(angle)
+                Render4V(self.IMG,
+                    ind.x + outer * ca, ind.y + outer * sa, 0.5,
+                    ind.x + outer * cb, ind.y + outer * sb, 0.5,
+                    ind.x + inner * cb, ind.y + inner * sb, 0.5,
+                    ind.x + inner * ca, ind.y + inner * sa, 0.5)
+                ca, sa = cb, sb
+            end
+        end
+    end
+end
+
+----------------------------------------
 -- Bezier
 ----------------------------------------
 local function clamp_node_count(node_count, min_count)
@@ -485,6 +544,7 @@ function IndicatorRenderer:init()
     self.positions = PositionIndicatorRenderer(IMG)
     self.boxes = BoxIndicatorRenderer(IMG)
     self.polylines = PolylineIndicatorRenderer(IMG)
+    self.arcs = ArcIndicatorRenderer(IMG)
     self.beziers3 = BezierIndicatorRenderer(3)
     self.beziers5 = BezierIndicatorRenderer(5)
 end
@@ -493,6 +553,7 @@ function IndicatorRenderer:clear()
     self.positions:clear()
     self.boxes:clear()
     self.polylines:clear()
+    self.arcs:clear()
     self.beziers3:clear()
     self.beziers5:clear()
 end
@@ -501,6 +562,7 @@ function IndicatorRenderer:render(cfg)
     self.positions:render(cfg.position)
     self.boxes:render(cfg.box)
     self.polylines:render(cfg.polyline)
+    self.arcs:render(cfg.arc)
     self.beziers3:render(cfg.bezier3)
     self.beziers5:render(cfg.bezier5)
 end

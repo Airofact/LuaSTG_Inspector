@@ -42,6 +42,11 @@ function InspectorConfiguration:init()
             show = true,
             thickness = 1,
         },
+        arc = {
+            show = true,
+            thickness = 1,
+            segments = 64,
+        },
         bezier3 = {
             show = true,
             width = 4,
