@@ -12,6 +12,8 @@ local function is_expandable(key, value)
     return vtype == "table" or vtype == "thread"
 end
 
+local layoutGameObject
+
 ---@param value any
 local function layoutProperty(key, value, owner)
     if not imgui_exist then return end
@@ -29,8 +31,8 @@ local function layoutProperty(key, value, owner)
     elseif vtype == "string" then
         display_value = string.format("%q", value)
     elseif vtype == "table" then
-        -- 尝试获取类的标识符
-        if value.__identifier then
+        -- 尝试获取类的标识符（天哪你敢信这里每次都要越过那个【边界】一遍吗）
+        if IsValid(value) and value.__identifier then
             display_value = string.format("table: %s", value.__identifier)
         else
             display_value = string.format("table: %s", tostring(value))
@@ -89,7 +91,13 @@ local function layoutProperty(key, value, owner)
             ImGui.TextColored(type_color, display_value)
         end
     else
-        if ImGui.TreeNode(string.format("%s: %s", tostring(key), display_value)) then
+        if IsValid(value) then
+            local root_display = value.__identifier or tostring(value)
+            if ImGui.TreeNode(string.format("%s: %s", tostring(key), root_display)) then
+                layoutGameObject(value)
+                ImGui.TreePop()
+            end
+        elseif ImGui.TreeNode(string.format("%s: %s", tostring(key), display_value)) then
             if vtype == "thread" then
                 local co_status = coroutine.status(value)
                 ImGui.Text(string.format("Status: %s", co_status))
@@ -157,7 +165,7 @@ local function layoutClassTable(class)
     end
 end
 
-local function layoutGameObject(unit)
+layoutGameObject =  function(unit)
     if not imgui_exist then return end
     local ImGui = imgui.ImGui
 
@@ -221,6 +229,9 @@ local function layout()
     ImGui.Text(string.format("Position: (%.1f, %.1f)", unit.x, unit.y))
     local v, a = GetV(unit)
     ImGui.Text(string.format("Speed: Ortho(%.1f, %.1f), Polar(%.1f, %.1f)", unit.vx, unit.vy, v, a))
+    local dx, dy = unit.dx, unit.dy
+    local dpl, dpa = hypot(dx, dy), math.deg(math.atan2(dy, dx))
+    ImGui.Text(string.format("Delta Position: Ortho(%.1f, %.1f), Polar(%.1f, %.1f)", dx, dy, dpl, dpa))
 
     ImGui.Separator()
 
