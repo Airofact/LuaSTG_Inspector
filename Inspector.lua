@@ -1,11 +1,10 @@
----Inspector 核心门面，持有所有单例并协调模块间交互
+---Inspector 核心门面，管理配置与对象选中状态
+local IndicatorRenderer = require"Renderer.IndicatorRenderer"
+
 local Inspector = plus.Class()
 
 function Inspector:init()
     self.config = require"InspectorConfiguration"
-    self.object_meta_info = require"Renderer.ObjectMetaInfoRenderer"
-    self.instance_info = require"Renderer.InstanceInfoRenderer"
-    self.indicator = require"Renderer.IndicatorRenderer"
 
     self.selected_units = {}
     self.selected_class = nil
@@ -17,7 +16,7 @@ function Inspector:add_selected_unit(unit)
         if u == unit then return end
     end
     table.insert(self.selected_units, unit)
-    local id = self.indicator.positions:add_for_unit(unit, Color(255, 0, 255, 255))
+    local id = IndicatorRenderer.positions:add_for_unit(unit, Color(255, 0, 255, 255))
     self.owned_indicators[unit] = id
 end
 
@@ -27,7 +26,7 @@ function Inspector:remove_selected_unit(unit)
             table.remove(self.selected_units, i)
             local id = self.owned_indicators[unit]
             if id then
-                self.indicator.positions:remove(id)
+                IndicatorRenderer.positions:remove(id)
                 self.owned_indicators[unit] = nil
             end
             return
@@ -41,7 +40,7 @@ function Inspector:toggle_selected_unit(unit)
             table.remove(self.selected_units, i)
             local id = self.owned_indicators[unit]
             if id then
-                self.indicator.positions:remove(id)
+                IndicatorRenderer.positions:remove(id)
                 self.owned_indicators[unit] = nil
             end
             return
@@ -59,7 +58,7 @@ end
 
 function Inspector:clear_selected_units()
     for _, id in pairs(self.owned_indicators) do
-        self.indicator.positions:remove(id)
+        IndicatorRenderer.positions:remove(id)
     end
     self.owned_indicators = {}
     self.selected_units = {}

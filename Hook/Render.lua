@@ -1,4 +1,7 @@
 local Inspector = require("Inspector")
+local ObjectMetaInfoRenderer = require("Renderer.ObjectMetaInfoRenderer")
+local InstanceInfoRenderer = require("Renderer.InstanceInfoRenderer")
+local IndicatorRenderer = require("Renderer.IndicatorRenderer")
 
 local original_AfterRender = AfterRender
 
@@ -12,7 +15,7 @@ function AfterRender()
         return
     end
 
-    Inspector.object_meta_info:render(config.enabled_groups, Inspector.selected_units, config.object_meta_info)
-    Inspector.instance_info:render(config.enabled_groups, config.instance_info)
-    Inspector.indicator:render(config.indicator)
+    ObjectMetaInfoRenderer:render(config.enabled_groups, Inspector.selected_units, config.object_meta_info)
+    InstanceInfoRenderer:render(config.enabled_groups, config.instance_info)
+    IndicatorRenderer:render(config.indicator)
 end
