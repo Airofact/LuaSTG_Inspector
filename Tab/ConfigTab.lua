@@ -59,6 +59,20 @@ local function layout()
     v, pl.show = ImGui.Checkbox("Show Polyline##pl", pl.show)
     v, pl.thickness = ImGui.SliderInt("Thickness##pl", pl.thickness, 1, 10)
 
+    ImGui.Separator()
+    ImGui.Text("Cubic Bezier")
+    local bz3 = ch.bezier3
+    v, bz3.show = ImGui.Checkbox("Show Cubic Bezier##bezier3", bz3.show)
+    v, bz3.width = ImGui.SliderInt("Width##bezier3", bz3.width, 1, 32)
+    v, bz3.node_count = ImGui.SliderInt("Nodes##bezier3", bz3.node_count, 4, 512)
+
+    ImGui.Separator()
+    ImGui.Text("Quintic Bezier")
+    local bz5 = ch.bezier5
+    v, bz5.show = ImGui.Checkbox("Show Quintic Bezier##bezier5", bz5.show)
+    v, bz5.width = ImGui.SliderInt("Width##bezier5", bz5.width, 1, 32)
+    v, bz5.node_count = ImGui.SliderInt("Nodes##bezier5", bz5.node_count, 6, 512)
+
     ----------------------------------------
     -- Groups
     ----------------------------------------
