@@ -21,9 +21,16 @@ local function get_caller_context()
     local source_content
     if info.source then
         local file_path = info.source
+        if file_path:sub(1, 1) == "@" then
+            file_path = file_path:sub(2)
+        end
 
+--[[ 
         if not source_cache[file_path] then
             local actual_path = file_path
+            if actual_path:sub(1, 1) == "@" then
+                actual_path = actual_path:sub(2)
+            end
             local tried_paths = {}
 
             -- 首先尝试直接打开文件
@@ -59,6 +66,21 @@ local function get_caller_context()
                 for _, path in ipairs(tried_paths) do
                     print(path)
                 end
+                return nil  -- 无法读取文件
+            end
+        end
+]]
+        if not source_cache[file_path] then
+            local content = lstg.LoadTextFile(file_path)
+            if content then
+                string.gsub(content, "\r", "")
+                local src = { lines = {} }
+                for line in content:gmatch("([^\n]*)\n?") do
+                    table.insert(src.lines, line)
+                end
+                source_cache[file_path] = src
+            else
+                print(string.format("[EvilNameStealer] 无法找到文件: %s", file_path))
                 return nil  -- 无法读取文件
             end
         end
